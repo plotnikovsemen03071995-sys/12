@@ -27,7 +27,10 @@ jobs:
           }
           
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@1.75.0 # Фиксируем версию для совместимости со Sciter
+        uses: dtolnay/rust-toolchain@1.75.0
+        with:
+          targets: x86_64-pc-windows-msvc
+          components: rustfmt, clippy
 
       - name: Install Dependencies (vcpkg)
         run: |
@@ -37,18 +40,16 @@ jobs:
       - name: Setup vcpkg and Install Dependencies
         shell: pwsh
         run: |
-          # 1. Удаляем файл манифеста, чтобы разрешить классическую установку
           if (Test-Path "vcpkg.json") { Remove-Item "vcpkg.json" -Force }
-
           vcpkg integrate install
+          # Добавляем aom сюда!
+          vcpkg install opus:x64-windows-static libvpx:x64-windows-static libyuv:x64-windows-static aom:x64-windows-static
           
-          # 2. Устанавливаем все нужные библиотеки одним махом
-          vcpkg install opus:x64-windows-static libvpx:x64-windows-static libyuv:x64-windows-static
-
-          # 3. Передаем пути в переменные окружения GitHub
           echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
           echo "VCPKG_DEFAULT_TRIPLET=x64-windows-static" >> $env:GITHUB_ENV
-
+          # Передаем путь к инклюдам для Clang, чтобы он нашел aom/aom.h
+          echo "CPATH=C:\vcpkg\installed\x64-windows-static\include" >> $env:GITHUB_ENV
+          
       - name: Build RustDesk
         shell: pwsh
         run: |
