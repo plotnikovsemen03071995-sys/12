@@ -34,9 +34,22 @@ jobs:
           vcpkg integrate install
           # Здесь можно добавить дополнительные пакеты, если потребуются
 
-      - name: Build RustDesk
+      - name: Setup vcpkg and Install Opus
+        shell: pwsh
         run: |
-          # Если вы меняли конфиг, сборка подхватит его автоматически
+          vcpkg integrate install
+          # Устанавливаем саму библиотеку opus, которую не мог найти magnum-opus
+          vcpkg install opus:x64-windows-static
+          
+          # Прописываем системные переменные правильно для Windows
+          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
+          echo "VCPKG_DEFAULT_TRIPLET=x64-windows-static" >> $env:GITHUB_ENV
+
+      - name: Build RustDesk
+        shell: pwsh
+        run: |
+          # Включаем динамическую линковку для vcpkg-rs, если это необходимо
+          $env:VCPKGRS_DYNAMIC = "1"
           cargo build --release
 
       - name: Upload Artifact
