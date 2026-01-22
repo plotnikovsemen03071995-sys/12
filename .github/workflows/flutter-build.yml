@@ -52,8 +52,16 @@ jobs:
       - name: Build RustDesk
         shell: pwsh
         run: |
+          # 1. Активируем окружение Visual Studio (MSVC)
+          Import-Module "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"
+          Enter-VsDevShell -VsInstallPath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise" -SkipAutomaticLocation -Arch amd64
+          
+          # 2. Проверяем переменные vcpkg
+          $env:VCPKG_ROOT = $env:VCPKG_INSTALLATION_ROOT
           $env:VCPKGRS_DYNAMIC = "1"
-          cargo build --release
+          
+          # 3. Запускаем сборку с явным указанием целевой платформы
+          cargo build --release --target x86_64-pc-windows-msvc
           
 
       - name: Upload Artifact
