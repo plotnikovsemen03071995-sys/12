@@ -37,17 +37,15 @@ jobs:
       - name: Setup vcpkg and Install Dependencies
         shell: pwsh
         run: |
-          # Удаляем манифест, чтобы включить классический режим vcpkg
+          # 1. Удаляем файл манифеста, чтобы разрешить классическую установку
           if (Test-Path "vcpkg.json") { Remove-Item "vcpkg.json" -Force }
-          
+
           vcpkg integrate install
           
-          # Устанавливаем все библиотеки, необходимые для RustDesk
-          vcpkg install opus:x64-windows-static
-          vcpkg install libvpx:x64-windows-static
-          vcpkg install libyuv:x64-windows-static
-          
-          # Настраиваем переменные окружения для Rust
+          # 2. Устанавливаем все нужные библиотеки одним махом
+          vcpkg install opus:x64-windows-static libvpx:x64-windows-static libyuv:x64-windows-static
+
+          # 3. Передаем пути в переменные окружения GitHub
           echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
           echo "VCPKG_DEFAULT_TRIPLET=x64-windows-static" >> $env:GITHUB_ENV
 
@@ -57,12 +55,6 @@ jobs:
           $env:VCPKGRS_DYNAMIC = "1"
           cargo build --release
           
-      - name: Build RustDesk
-        shell: pwsh
-        run: |
-          # Включаем динамическую линковку для vcpkg-rs, если это необходимо
-          $env:VCPKGRS_DYNAMIC = "1"
-          cargo build --release
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
