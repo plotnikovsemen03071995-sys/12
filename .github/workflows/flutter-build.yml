@@ -38,8 +38,12 @@ jobs:
         shell: pwsh
         run: |
           vcpkg integrate install
-          # Устанавливаем саму библиотеку opus, которую не мог найти magnum-opus
-          vcpkg install opus:x64-windows-static
+          # Флаг --classic позволяет обойти ограничение манифеста
+          vcpkg install opus:x64-windows-static --classic
+          
+          # Прописываем переменные окружения
+          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
+          echo "VCPKG_DEFAULT_TRIPLET=x64-windows-static" >> $env:GITHUB_ENV
           
           # Прописываем системные переменные правильно для Windows
           echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
