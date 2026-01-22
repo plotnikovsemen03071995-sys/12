@@ -357,6 +357,12 @@ jobs:
           head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-${{ matrix.job.vcpkg-triplet }}-rel-out.log" || true
         shell: bash
 
+      - name: Install LLVM
+        run: |
+          choco install llvm --version=15.0.7 --allow-downgrade
+          echo "LIBCLANG_PATH=C:\Program Files\LLVM\bin" >> $GITHUB_ENV
+          echo "C:\Program Files\LLVM\bin" >> $GITHUB_PATH
+          
       - name: Build rustdesk
         id: build
         shell: bash
