@@ -12,13 +12,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Install LLVM (Fix for hwcodec)
+        
+      - name: Setup LLVM (Use pre-installed)
         run: |
-          choco install llvm --version=15.0.7 --allow-downgrade
-          echo "LIBCLANG_PATH=C:\Program Files\LLVM\bin" >> $GITHUB_ENV
-          echo "C:\Program Files\LLVM\bin" >> $GITHUB_PATH
-
+          # В GitHub Windows Runners LLVM обычно уже есть по этому пути
+          $llvmPath = "C:\Program Files\LLVM\bin"
+          if (Test-Path $llvmPath) {
+            echo "LIBCLANG_PATH=$llvmPath" >> $env:GITHUB_ENV
+            echo "$llvmPath" >> $env:GITHUB_PATH
+            Write-Host "LLVM found and configured."
+          } else {
+            Write-Error "LLVM not found in default path!"
+            exit 1
+          }
+          
       - name: Install Rust
         uses: dtolnay/rust-toolchain@1.75.0 # Фиксируем версию для совместимости со Sciter
 
