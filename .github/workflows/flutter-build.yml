@@ -34,19 +34,29 @@ jobs:
           vcpkg integrate install
           # Здесь можно добавить дополнительные пакеты, если потребуются
 
-      - name: Setup vcpkg and Install Opus
+      - name: Setup vcpkg and Install Dependencies
         shell: pwsh
         run: |
-          vcpkg integrate install
-          # Флаг --classic позволяет устанавливать пакеты вручную, игнорируя vcpkg.json
-          vcpkg install opus:x64-windows-static --classic
-          vcpkg install libvpx:x64-windows-static --classic
-          vcpkg install libyuv:x64-windows-static --classic
+          # Удаляем манифест, чтобы включить классический режим vcpkg
+          if (Test-Path "vcpkg.json") { Remove-Item "vcpkg.json" -Force }
           
-          # Прописываем переменные окружения для Rust
+          vcpkg integrate install
+          
+          # Устанавливаем все библиотеки, необходимые для RustDesk
+          vcpkg install opus:x64-windows-static
+          vcpkg install libvpx:x64-windows-static
+          vcpkg install libyuv:x64-windows-static
+          
+          # Настраиваем переменные окружения для Rust
           echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
           echo "VCPKG_DEFAULT_TRIPLET=x64-windows-static" >> $env:GITHUB_ENV
 
+      - name: Build RustDesk
+        shell: pwsh
+        run: |
+          $env:VCPKGRS_DYNAMIC = "1"
+          cargo build --release
+          
       - name: Build RustDesk
         shell: pwsh
         run: |
