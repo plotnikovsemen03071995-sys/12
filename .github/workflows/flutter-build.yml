@@ -38,14 +38,12 @@ jobs:
         shell: pwsh
         run: |
           vcpkg integrate install
-          # Флаг --classic позволяет обойти ограничение манифеста
+          # Флаг --classic позволяет устанавливать пакеты вручную, игнорируя vcpkg.json
           vcpkg install opus:x64-windows-static --classic
+          vcpkg install libvpx:x64-windows-static --classic
+          vcpkg install libyuv:x64-windows-static --classic
           
-          # Прописываем переменные окружения
-          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
-          echo "VCPKG_DEFAULT_TRIPLET=x64-windows-static" >> $env:GITHUB_ENV
-          
-          # Прописываем системные переменные правильно для Windows
+          # Прописываем переменные окружения для Rust
           echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
           echo "VCPKG_DEFAULT_TRIPLET=x64-windows-static" >> $env:GITHUB_ENV
 
