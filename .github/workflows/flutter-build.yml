@@ -27,8 +27,9 @@ jobs:
           }
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@1.75.0
+        uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: 1.66.0  # Понижаем версию, чтобы старые зависимости (ntapi) собрались
           targets: x86_64-pc-windows-msvc
           components: rustfmt
 
