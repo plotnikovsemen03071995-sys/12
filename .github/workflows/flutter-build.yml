@@ -1,4 +1,4 @@
-name: Build RustDesk 1.1.9 (Stable)
+name: Build RustDesk 1.1.9 (Stable Sciter)
 
 on:
   workflow_dispatch:
@@ -13,7 +13,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: 1.1.9  # <--- ВАЖНО: Переключаемся на стабильную версию Sciter
+          # ВАЖНО: Качаем код из официального репозитория, так как в форке может не быть старых тегов
+          repository: rustdesk/rustdesk
+          ref: 1.1.9
 
       - name: Setup LLVM
         shell: pwsh
@@ -35,7 +37,7 @@ jobs:
         run: |
           if (Test-Path "vcpkg.json") { Remove-Item "vcpkg.json" -Force }
           vcpkg integrate install
-          # Для версии 1.1.9 набор библиотек немного проще, но этот тоже подойдет
+          # Устанавливаем базовые кодеки для версии 1.1.9
           vcpkg install opus:x64-windows-static libvpx:x64-windows-static libyuv:x64-windows-static aom:x64-windows-static
           echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" >> $env:GITHUB_ENV
           echo "VCPKG_DEFAULT_TRIPLET=x64-windows-static" >> $env:GITHUB_ENV
@@ -48,12 +50,14 @@ jobs:
           Enter-VsDevShell -VsInstallPath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise" -SkipAutomaticLocation -Arch amd64
           $env:VCPKG_ROOT = $env:VCPKG_INSTALLATION_ROOT
           $env:VCPKGRS_DYNAMIC = "1"
-          # Включаем inline фичу, чтобы HTML вшился внутрь EXE
+          
+          # Для версии 1.1.9 флаг inline критичен, чтобы интерфейс вшился внутрь EXE
           cargo build --release --target x86_64-pc-windows-msvc --features inline
 
       - name: Download Sciter DLL
         shell: pwsh
         run: |
+          # Скачиваем sciter.dll (без него exe не запустится)
           $OutPath = "target/x86_64-pc-windows-msvc/release/sciter.dll"
           Invoke-WebRequest -Uri "https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.win/x64/sciter.dll" -OutFile $OutPath
 
@@ -61,7 +65,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: rustdesk-stable-x64
+          name: rustdesk-1.1.9-stable
           path: |
             target/x86_64-pc-windows-msvc/release/rustdesk.exe
             target/x86_64-pc-windows-msvc/release/sciter.dll
